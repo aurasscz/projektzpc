@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Říčany – stará a současná mapa</title>
+  <meta name="description" content="Interaktivní porovnání mapy Říčan z III. vojenského mapování se současnou mapou pomocí rolety. Školní projekt Krajina – Historik, úkol 1.2.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="page-header">
+    <div class="wrap">
+      <p class="kicker">Projekt Krajina – Historik, úkol 1.2</p>
+      <h1>Říčany na staré a současné mapě</h1>
+      <p class="author">Autor: <span class="author-name">[DOPLNÍM]</span></p>
+    </div>
+  </header>
+
+  <main>
+    <section class="map-section" aria-labelledby="map-heading">
+      <h2 id="map-heading" class="visually-hidden">Mapa s roletou</h2>
+
+      <div class="toolbar wrap-wide">
+        <fieldset class="seg">
+          <legend><span class="long">Vlevo – stará mapa</span><span class="short">Vlevo:</span></legend>
+          <label><input type="radio" name="old" value="iii" checked><span><span class="long">III. vojenské mapování (≈ 1880)</span><span class="short">III. mapování ≈ 1880</span></span></label>
+          <label><input type="radio" name="old" value="ii"><span><span class="long">II. vojenské mapování (1836–1852)</span><span class="short">II. mapování ≈ 1845</span></span></label>
+        </fieldset>
+        <fieldset class="seg">
+          <legend><span class="long">Vpravo – dnes</span><span class="short">Vpravo:</span></legend>
+          <label><input type="radio" name="now" value="osm" checked><span><span class="long">Mapa (OpenStreetMap)</span><span class="short">Mapa</span></span></label>
+          <label><input type="radio" name="now" value="orto"><span><span class="long">Letecký snímek (ČÚZK)</span><span class="short">Letecký snímek</span></span></label>
+        </fieldset>
+      </div>
+
+      <div class="map-wrap">
+        <div id="map" aria-label="Mapa Říčan: vlevo stará mapa, vpravo současná mapa"></div>
+        <div class="map-notice" id="mapNotice" role="status" hidden></div>
+      </div>
+
+      <p class="hint wrap-wide">Táhněte svislou čáru (nebo kulatý úchyt) doleva a doprava – vlevo uvidíte starou mapu, vpravo dnešní stav. Čísla na mapě jsou zajímavá místa, klepnutím zobrazíte popis.</p>
+
+      <nav class="places wrap-wide" aria-label="Zajímavá místa">
+        <ol class="place-list" id="placeList"></ol>
+      </nav>
+    </section>
+
+    <div class="wrap content">
+      <section aria-labelledby="intro-heading">
+        <h2 id="intro-heading">Úvod</h2>
+        <p>
+          <strong>III. vojenské mapování</strong> probíhalo v Rakousku-Uhersku v letech 1869–1887.
+          Vojenští topografové při něm zaměřili krajinu v měřítku 1 : 25 000 a z těchto podkladů
+          vznikly <strong>speciální mapy v měřítku 1 : 75 000</strong>, které vidíte v levé části mapy.
+          Terén je na nich kreslen šrafami, výšky kótami, lesy zeleně a vodní plochy vodorovným šrafováním.
+          CENIA tyto mapy ortorektifikovala (přesně usadila do souřadnic), takže je lze přímo překrýt se současnou mapou.
+        </p>
+        <p>
+          Porovnáním staré a nové mapy je vidět, co v krajině zůstalo (náměstí, kostel, údolí potoků, velké lesy),
+          co se změnilo (rozsah zástavby, cesty) a co je úplně nové (dálnice, sídliště, průmyslové a obchodní zóny).
+          Pro srovnání je možné vlevo přepnout i na starší <strong>II. vojenské mapování</strong> (Čechy 1842–1852).
+        </p>
+        <p class="note">
+          Pozor: mapové listy se po roce 1880 ještě aktualizovaly. V okolí Říčan proto stará mapa zachycuje
+          i stavby z přelomu 19. a 20. století – například „Vychovatelnu manž. Olivových“ (dnešní Olivovu léčebnu)
+          nebo vilovou zástavbu Radošovic. Severně od centra je navíc vidět šikmý šev mezi dvěma mapovými listy.
+        </p>
+      </section>
+
+      <section aria-labelledby="changes-heading">
+        <h2 id="changes-heading">Co se změnilo</h2>
+        <div class="cards">
+          <article class="card">
+            <h3>Zástavba</h3>
+            <p><span class="then">Tehdy:</span> malé město kolem náměstí, na severu navazují Radošovice. Okolní vesnice (Kuří, Strašín, Voděradky, Pacov) jsou samostatné a oddělené poli.</p>
+            <p><span class="now">Dnes:</span> zástavba se rozšířila do všech stran. Na místě polí vznikly nové čtvrti – např. kolem Komenského náměstí nebo rodinné domy v ulicích pojmenovaných po řekách (Labská, Vltavská) na jihozápadě. Pacov dnes navazuje na souvislou zástavbu, Kuří a Strašín jsou částmi města, ale stále je od něj dělí pole a les.</p>
+          </article>
+          <article class="card">
+            <h3>Lesy</h3>
+            <p><span class="then">Tehdy:</span> velké lesy leží jihovýchodně a východně od města (Říčanský les) a kolem Louňovic.</p>
+            <p><span class="now">Dnes:</span> velké lesy mají velmi podobný tvar a patří k nejstálejším prvkům krajiny. Jihovýchodně od Radošovic ale okraj lesa podél Černokostelecké silnice ustoupil zahrádkám a domům.</p>
+          </article>
+          <article class="card">
+            <h3>Rybníky a vodstvo</h3>
+            <p><span class="then">Tehdy:</span> potoky tečou mělkými údolími mezi poli. Vodní plochy jsou kreslené jen vodorovným šrafováním bez barvy a malé rybníky v měřítku 1 : 75 000 často nejsou zřetelně vidět.</p>
+            <p><span class="now">Dnes:</span> potoky tečou stejnými údolími. Rybníky Marvánek, Jureček nebo Mlýnský rybník jsou součástí města a slouží k rekreaci (Jureček jako přírodní koupaliště).</p>
+          </article>
+          <article class="card">
+            <h3>Silnice a železnice</h3>
+            <p><span class="then">Tehdy:</span> železnice z Prahy přes Říčany už existuje (provoz od roku 1871) a vede stejnou trasou jako dnes. Cesty se paprskovitě sbíhají na náměstí, silnice na Kostelec nad Černými lesy (dnes Černokostelecká) i Kutnohorská u Louňovic už vedou po dnešních trasách.</p>
+            <p><span class="now">Dnes:</span> trať je dvoukolejná (1903) a elektrizovaná (1971). Přibyly dálnice, nové silnice a hustá síť ulic.</p>
+          </article>
+          <article class="card">
+            <h3>Nové prvky</h3>
+            <p>Dálnice D1 (úsek Praha – Mirošovice otevřen 12. 7. 1971) a Pražský okruh, velké sklady a průmyslové areály u dálnice i u Radošovic, nové čtvrti rodinných i bytových domů, sportoviště jižně od centra, sportovní letiště jižně od města.</p>
+          </article>
+          <article class="card">
+            <h3>Zaniklé prvky</h3>
+            <p>Pole a polní cesty mezi městem a okolními vesnicemi zmizely pod novou zástavbou, sklady a dálnicí. Zmizelo i volné návrší u dnešního Komenského náměstí a část lesa u Radošovic. Hrad byl zříceninou už v době mapování.</p>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="conclusion-heading">
+        <h2 id="conclusion-heading">Závěr</h2>
+        <p>
+          Za zhruba 140 let se Říčany změnily z malého města obklopeného poli ve velké město na okraji Prahy
+          (podle Wikipedie asi 3 100 obyvatel v roce 1880 a přes 17 000 dnes).
+          Historické jádro s náměstím, kostelem a zříceninou hradu zůstalo na svém místě, ale zástavba
+          se rozrostla do všech stran a obsadila pole mezi městem a okolními vesnicemi.
+          Železnice existovala už v době mapování a vede stále stejnou trasou; o sto let později přibyla
+          dálnice D1, kolem které vyrostly sklady a průmyslové areály.
+          Nejstálejší zůstaly velké lesy, údolí potoků a hlavní cesty – podle nich se obě mapy dají nejlépe porovnat.
+        </p>
+      </section>
+
+      <section aria-labelledby="sources-heading">
+        <h2 id="sources-heading">Zdroje</h2>
+        <ul class="sources">
+          <li>III. a II. vojenské mapování – CENIA, Národní geoportál INSPIRE (služba <code>gis.cenia.cz/mapcache</code>, S-JTSK).</li>
+          <li>Ortofoto ČR – © ČÚZK (<a href="https://ags.cuzk.cz/arcgis1/rest/services/ORTOFOTO_WM/MapServer">ags.cuzk.cz</a>).</li>
+          <li>Současná mapa – © přispěvatelé <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>.</li>
+          <li>Staré mapy online – Laboratoř geoinformatiky UJEP, <a href="https://oldmaps.geolab.cz">oldmaps.geolab.cz</a>.</li>
+          <li>Wikipedie: <a href="https://cs.wikipedia.org/wiki/%C5%98%C3%AD%C4%8Dany">Říčany</a>, <a href="https://cs.wikipedia.org/wiki/%C5%98%C3%AD%C4%8Dany_(n%C3%A1dra%C5%BE%C3%AD)">Říčany (nádraží)</a>.</li>
+          <li>Otevření D1: <a href="https://www.novinky.cz/clanek/historie-po-de-jednicce-se-jezdi-uz-pul-stoleti-40365895">Novinky.cz – Po „déjedničce“ se jezdí už půl století</a>.</li>
+          <li>Souřadnice míst – OpenStreetMap (Nominatim).</li>
+          <li>Technika: <a href="https://leafletjs.com">Leaflet</a>, <a href="https://proj4js.org">proj4js</a>.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="page-footer">
+    <div class="wrap">Školní projekt Krajina · Říčany · stará mapa vs. dnešek</div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
+  <script src="places.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

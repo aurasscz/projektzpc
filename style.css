@@ -1,0 +1,234 @@
+/* Říčany – stará a současná mapa */
+
+:root {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --text: #1f2328;
+  --muted: #5b6168;
+  --border: #ddd8cc;
+  --accent: #9c3d1f;        /* „stará mapa“ – sépiová/cihlová */
+  --accent-2: #1d5fa6;      /* „dnes“ – modrá */
+  --accent-soft: #f3e6dc;
+  --shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 4px 14px rgba(0, 0, 0, .08);
+  --radius: 10px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17191c;
+    --surface: #212429;
+    --text: #e8e6e1;
+    --muted: #a3a8ae;
+    --border: #363a40;
+    --accent: #e08a62;
+    --accent-2: #7fb3ec;
+    --accent-soft: #3a2a22;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+a { color: var(--accent-2); }
+
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+.wrap-wide { max-width: 1400px; margin-left: auto; margin-right: auto; padding-left: 16px; padding-right: 16px; }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* --- Hlavička --------------------------------------------------------- */
+.page-header { padding: 22px 0 14px; }
+.kicker {
+  margin: 0; color: var(--accent); font-weight: 600; font-size: .9rem;
+  letter-spacing: .02em;
+}
+h1 { margin: 4px 0 2px; font-size: clamp(1.6rem, 4.5vw, 2.3rem); line-height: 1.15; }
+.author { margin: 4px 0 0; color: var(--muted); }
+
+/* --- Ovládací lišta ---------------------------------------------------- */
+.toolbar {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 18px;
+  padding-bottom: 10px;
+}
+.seg { border: 0; margin: 0; padding: 0; min-width: 0; }
+.seg legend { font-size: .8rem; color: var(--muted); padding: 0; margin-bottom: 4px; font-weight: 600; }
+.seg label { display: inline-block; margin: 0 4px 4px 0; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label > span {
+  display: inline-block; padding: 6px 12px; border: 1px solid var(--border);
+  border-radius: 999px; background: var(--surface); font-size: .9rem; line-height: 1.3;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.seg .short { display: none; }
+.seg input:checked + span { background: var(--text); border-color: var(--text); color: var(--bg); }
+.seg input:focus-visible + span { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+
+.btn {
+  font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer;
+  padding: 7px 14px; border-radius: 999px; border: 1px solid var(--accent);
+  background: var(--accent); color: #fff;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+.home-btn { display: flex !important; align-items: center; justify-content: center; color: #333 !important; }
+
+/* --- Mapa -------------------------------------------------------------- */
+.map-wrap { position: relative; }
+#map {
+  width: 100%;
+  height: 70vh;
+  height: 70svh;
+  min-height: 340px;
+  background: #e9e5dc;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.map-notice {
+  position: absolute; left: 50%; bottom: 36px; transform: translateX(-50%);
+  z-index: 1100; max-width: calc(100% - 32px);
+  background: #fff4e5; color: #6b3b00; border: 1px solid #f0c27a;
+  padding: 8px 12px; border-radius: 8px; font-size: .9rem; box-shadow: var(--shadow);
+}
+
+/* Dlaždice staré mapy (přepočítané ze S-JTSK) */
+.krovak-tile { overflow: hidden; }
+.krovak-tile img {
+  position: absolute; left: 0; top: 0;
+  transform-origin: 0 0;
+  max-width: none !important; max-height: none !important;
+  user-select: none; -webkit-user-select: none; pointer-events: none;
+}
+
+/* Roleta */
+.swipe { position: absolute; left: 0; top: 0; width: 0; }
+.swipe-line {
+  position: absolute; top: 0; left: -1.5px; width: 3px;
+  background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .25), 0 0 8px rgba(0, 0, 0, .35);
+  cursor: ew-resize; touch-action: none;
+}
+.swipe-line::before { /* širší neviditelná plocha pro uchopení */
+  content: ""; position: absolute; top: 0; bottom: 0; left: -10px; right: -10px;
+}
+.swipe-handle {
+  position: absolute; left: -23px; width: 46px; height: 46px; margin-top: -23px;
+  border-radius: 50%; background: #fff; color: #333;
+  border: 2px solid rgba(0, 0, 0, .15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+  display: flex; align-items: center; justify-content: center;
+  cursor: ew-resize; touch-action: none;
+  transition: transform .12s;
+}
+.swipe-handle:hover, .swipe.is-dragging .swipe-handle { transform: scale(1.08); }
+.swipe-handle:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 3px; }
+.swipe-handle svg { pointer-events: none; }
+
+/* Popisky 1880 / DNES */
+.map-label {
+  padding: 4px 12px; border-radius: 6px; font-weight: 800; font-size: 1.05rem;
+  letter-spacing: .06em; color: #fff; box-shadow: 0 1px 6px rgba(0, 0, 0, .3);
+  transition: opacity .15s; pointer-events: none; user-select: none;
+}
+.leaflet-control.map-label { margin-top: 10px; }
+.map-label-old { background: var(--accent); }
+.map-label-now { background: var(--accent-2); }
+.map-label.is-hidden { opacity: 0; }
+
+/* Značky míst */
+.place-marker {
+  background: var(--accent); color: #fff; border: 2px solid #fff; border-radius: 50%;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, .45);
+  display: flex; align-items: center; justify-content: center;
+  font: 700 13px/1 var(--font);
+}
+.place-marker span { pointer-events: none; }
+.place-marker:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+
+/* Bublina */
+.leaflet-container { font-family: var(--font); }
+.popup-title { margin: 0 0 6px; font-size: 1rem; line-height: 1.3; }
+.popup dl { margin: 0 0 10px; font-size: .88rem; line-height: 1.45; }
+.popup dt { font-weight: 700; margin-top: 6px; }
+.popup dt.then { color: #9c3d1f; }
+.popup dt.now { color: #1d5fa6; }
+.popup dd { margin: 0; }
+
+/* --- Seznam míst pod mapou -------------------------------------------- */
+.hint { color: var(--muted); font-size: .92rem; margin: 10px auto 6px; }
+.place-list {
+  list-style: none; margin: 0 auto; padding-top: 0; padding-bottom: 8px;
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.place-chip {
+  font: inherit; font-size: .9rem; cursor: pointer; text-align: left;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 12px 5px 5px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+}
+.place-chip:hover { border-color: var(--accent); }
+.place-chip:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+.chip-num {
+  min-width: 26px; height: 26px; padding: 0 4px; border-radius: 13px;
+  background: var(--accent); color: #fff; font-weight: 700; font-size: .8rem;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+/* --- Textový obsah ----------------------------------------------------- */
+.content { padding-top: 12px; padding-bottom: 32px; }
+.content h2 { font-size: 1.45rem; margin: 32px 0 10px; }
+.note {
+  background: var(--accent-soft); border-left: 4px solid var(--accent);
+  padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: .95rem;
+}
+
+.cards {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.card h3 { margin: 0 0 6px; font-size: 1.08rem; }
+.card p { margin: 6px 0 0; font-size: .95rem; }
+.then, .now { font-weight: 700; }
+.then { color: var(--accent); }
+.now { color: var(--accent-2); }
+
+.sources { padding-left: 20px; }
+.sources li { margin: 4px 0; }
+code { font-size: .88em; background: var(--surface); border: 1px solid var(--border); padding: 0 4px; border-radius: 4px; }
+
+.page-footer { border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; padding: 16px 0 28px; }
+
+/* --- Mobil ------------------------------------------------------------- */
+@media (max-width: 600px) {
+  body { font-size: 16px; }
+  .page-header { padding: 14px 0 8px; }
+  h1 { font-size: 1.45rem; }
+  .kicker { font-size: .8rem; }
+  .author { font-size: .9rem; margin-top: 2px; }
+  .toolbar { gap: 4px; padding-bottom: 6px; }
+  .seg { display: flex; align-items: center; flex-wrap: wrap; width: 100%; }
+  .seg legend { float: left; width: 3.4rem; margin: 0 0 4px 0; font-size: .8rem; line-height: 1.2; }
+  .seg label { margin: 0 4px 4px 0; }
+  .seg > label > span { padding: 4px 10px; font-size: .82rem; }
+  .seg .long { display: none; }
+  .seg .short { display: inline; }
+  .map-label { font-size: .92rem; padding: 3px 9px; }
+  .place-chip { font-size: .85rem; }
+}
