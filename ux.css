@@ -1,0 +1,150 @@
+/* ux.css – doplněk ke style.css (načíst až za ním) */
+
+:root { --peek: 92px; }                       /* víc textu vykukuje pod mapou */
+html { scroll-padding-top: 12px; }
+
+/* Odkaz „přeskočit na text“ (klávesnice, čtečky) */
+.skip-link {
+  position: fixed; left: 12px; top: -64px; z-index: 2000;
+  padding: 10px 16px; border-radius: var(--radius-sm);
+  background: var(--text); color: var(--bg);
+  font-weight: 600; text-decoration: none;
+  transition: top .2s var(--ease);
+}
+.skip-link:focus { top: calc(12px + env(safe-area-inset-top, 0px)); }
+
+/* Ukazatel čtení */
+.read-progress {
+  position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 2000;
+  transform-origin: 0 50%; transform: scaleX(var(--p, 0));
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  pointer-events: none;
+}
+
+/* Při čtení textů se mapa ztlumí, ať je text dobře čitelný */
+.map-wrap::after {
+  content: ""; position: absolute; inset: 0; z-index: 1200;
+  background: var(--bg); opacity: 0; pointer-events: none;
+  transition: opacity .5s var(--ease);
+}
+body.is-reading .map-wrap::after { opacity: .5; }
+
+/* Pruh pro posun stránky a „úchyt“ u pravého okraje už nejsou potřeba:
+   pasivní mapa nechává kolečko i prst stránce, aktivní se opouští šipkou. */
+body::after,
+body::before { display: none !important; }
+.leaflet-right { right: 0; }
+
+/* Plovoucí tlačítko „zpět na mapu“ */
+.to-map {
+  position: fixed; z-index: 20;
+  right: 14px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 8px 18px; border-radius: 999px;
+  font: 600 0.9rem var(--font); color: var(--text); cursor: pointer;
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border); box-shadow: var(--shadow);
+  visibility: hidden; opacity: 0; translate: 0 12px;
+  transition: opacity .3s, translate .3s var(--ease), visibility .3s, border-color .2s;
+}
+.to-map:hover { border-color: var(--accent-2); color: var(--accent-2); }
+.to-map:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 3px; }
+body.is-reading .to-map { visibility: visible; opacity: 1; translate: 0 0; }
+
+/* Dotykové ovladače: větší cíle */
+@media (pointer: coarse) {
+  .seg label > span, .place-chip { min-height: 44px; }
+}
+
+.content p { text-wrap: pretty; }
+
+@media (prefers-color-scheme: dark) {
+  body.is-reading .map-wrap::after { opacity: .62; }
+}
+@media print {
+  .skip-link, .read-progress, .to-map, .map-wrap { display: none !important; }
+}
+
+/* Seznam míst vpravo nezadržuje scroll stránky na svém konci */
+@media (min-width: 761px) {
+  .map-section .places { overscroll-behavior: auto; }
+}
+
+/* Tlačítko „Přiblížit“ v bublině */
+.btn {
+  font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  padding: 6px 14px; border: 0; border-radius: 999px; color: #fff;
+  background: var(--accent-2);
+  transition: scale .2s var(--ease), filter .2s;
+}
+.btn:hover { filter: brightness(1.1); scale: 1.04; }
+.btn:focus-visible, .popup-nav button:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+
+/* Předchozí / další místo v bublině */
+.popup-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--glass-border);
+  font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.popup-nav button {
+  width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+  font: 700 1.2rem/1 var(--font); color: var(--text);
+  background: var(--glass-soft); border: 1px solid var(--glass-border);
+  transition: background .2s, scale .2s var(--ease);
+}
+.popup-nav button:hover { background: var(--glass); scale: 1.1; }
+
+/* Právě otevřené místo v seznamu */
+.place-chip[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+
+/* Při načítání staré mapy se v popisku točí kolečko */
+.map-label-old.is-busy::after {
+  content: ""; display: inline-block; width: .75em; height: .75em; margin-left: 8px; vertical-align: -1px;
+  border: 2px solid rgba(255, 255, 255, .4); border-top-color: #fff; border-radius: 50%;
+  animation: ux-spin .8s linear infinite;
+}
+@keyframes ux-spin { to { rotate: 360deg; } }
+
+/* ===== Značky míst: při najetí neuskakují ===== */
+/* Leaflet polohuje značku přes transform; zvětšujeme proto jen vnitřní span. */
+.place-marker { transition: box-shadow .2s; }
+.place-marker:hover { scale: none; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }
+.place-marker span {
+  pointer-events: none;
+  display: block;
+  transition: scale .25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.place-marker:hover span { scale: 1.25; }
+
+/* Prvky se při najetí neposouvají (kurzor na okraji by blikal) */
+.place-chip:hover,
+.seg label:hover > span,
+.card:hover { transform: none; }
+
+/* ===== Dva stavy: stránka / mapa ===== */
+
+/* Šipka je vidět jen při aktivní mapě (funguje jako východ) */
+.map-section .scroll-down {
+  visibility: hidden; opacity: 0; translate: 0 12px;
+  transition: opacity .3s, translate .3s var(--ease), visibility .3s,
+              scale .25s cubic-bezier(0.34, 1.56, 0.64, 1), background .2s, border-color .2s;
+  animation: none;
+}
+body.map-active .map-section .scroll-down {
+  visibility: visible; opacity: 1; translate: 0 0;
+}
+
+/* Pasivní mapa: prst i kolečko posouvají stránku */
+body:not(.map-active) .leaflet-container {
+  touch-action: pan-y !important;
+  cursor: pointer;
+}
+
+/* Aktivní mapa: rámeček jako signál, že ji ovládáte */
+body.map-active .map-wrap { box-shadow: inset 0 0 0 3px var(--accent-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .place-marker span { transition: none; }
+}
